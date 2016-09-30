@@ -1,0 +1,23 @@
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+    <Set name="war">/opt/shibboleth-idp/war/idp.war</Set>
+    <Set name="contextPath">/idp</Set>
+    <Set name="extractWAR">true</Set>
+    <Set name="copyWebDir">false</Set>
+    <Set name="copyWebInf">true</Set>
+    <Set name="tempDirectory">/opt/jetty/tmp</Set>
+    <Call name="setAttribute">
+      <Arg>org.eclipse.jetty.server.webapp.WebInfIncludeJarPattern</Arg>
+      <Arg>none</Arg>
+    </Call>
+    <Set name="securityHandler">
+      <New class="org.eclipse.jetty.security.ConstraintSecurityHandler">
+       <Set name="loginService">
+         <New class="org.eclipse.jetty.jaas.JAASLoginService">
+           <Set name="name">Web Login Service</Set>
+           <Set name="loginModuleName">ShibUserPassAuth</Set>
+         </New>
+       </Set>
+      </New>
+    </Set>
+
+</Configure>

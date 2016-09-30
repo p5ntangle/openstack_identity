@@ -1,0 +1,3 @@
+---
+# tasks file for shibboleth
+- include: shibboleth-idp.yml

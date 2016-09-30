@@ -1,0 +1,26 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "local/xenial"
+  #config.vm.hostname = "shibboleth"
+  # Another Xenial workaround
+  config.vm.provision :shell, inline: "hostnamectl set-hostname shibboleth"
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "private_network", ip: "192.168.111.12"
+  # config.vm.network "public_network"
+  config.ssh.private_key_path = "../../keys/id_rsa"
+   config.vm.provider "virtualbox" do |vb|
+     vb.gui = true
+     vb.memory = "8192"
+     vb.cpus = "8"
+     vb.name = "shibboleth"
+   end
+  config.vm.define "shibboleth" do |shibboleth|
+  end
+  config.vm.provision :ansible do |ansible|
+    ansible.verbose = "v"
+    ansible.playbook = "shibboleth-vagrant.yml"
+  end
+
+end

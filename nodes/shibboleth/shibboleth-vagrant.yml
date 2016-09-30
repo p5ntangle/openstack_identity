@@ -1,0 +1,11 @@
+---
+- name: Prepare shibboleth server
+  hosts: all
+  sudo: true
+
+  vars_files:
+  - vars/default.yml
+
+  roles:
+    - { role: jetty, tags: ["jetty"] }
+    - { role: shibboleth-idp, tags: ["shibboleth-idp"] }

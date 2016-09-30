@@ -1,0 +1,9 @@
+---
+download_path: "/opt/source"
+jetty_key_pass: password
+shib_idp_version: 3.2.1
+shib_installdir: /opt
+shib_home: "{{ shib_installdir }}/shibboleth-idp/"
+java_installdir: /usr/lib/jvm/java-8-openjdk-amd64
+idp_keystore_password: secret1
+idp_sealer_password: secret1

@@ -1,0 +1,79 @@
+---
+   
+   - name: Install Java 
+     apt: pkg={{item}} state=installed
+     with_items:
+     - openjdk-8-jre-headless
+     - haveged
+
+   - name: Add JAVA_HOME to /etc/profile
+     lineinfile: dest=/etc/profile insertafter=EOF line="export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64"
+
+   - name: Ensures {{download_path}} dir exisist
+     file: path={{download_path}} state=directory
+     
+   - name: Ensures {{download_path}}/scripts dir exisist
+     file: path={{download_path}}/scripts state=directory
+
+   - name: Copy scripts
+     copy: src={{item}} dest="{{download_path}}/scripts"
+     with_fileglob:
+       - scripts/*
+
+   - name: Setup securerandom correctly
+     command: "{{item}}"
+     with_items:
+     - sh {{download_path}}/scripts/securerandom.sh
+     
+   - name: Dowload Jetty
+     get_url: url=http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.3.11.v20160721/jetty-distribution-9.3.11.v20160721.tar.gz
+              dest={{download_path}}/jetty-distribution-9.3.11.v20160721.tar.gz
+
+   - name: Extract Jetty
+     unarchive: src={{download_path}}/jetty-distribution-9.3.11.v20160721.tar.gz 
+                copy=no 
+                dest=/opt/
+
+   - name: Link jetty init script
+     command: "{{item}}"
+     with_items:
+     - ln -snf /opt/jetty-distribution-9.3.11.v20160721/bin/jetty.sh /etc/init.d/jetty
+
+   - name: Setup /opt/jetty directory
+     file: path=/opt/jetty state=directory
+
+   - name: Setup jetty defaults JETTY_HOME
+     shell: echo "JETTY_HOME=/opt/jetty-distribution-9.3.11.v20160721" >> /etc/default/jetty
+     
+   - name: Setup jetty defaults JETTY_BASE
+     shell: echo "JETTY_BASE=/opt/jetty" >> /etc/default/jetty
+     
+   - name: Run jetty installer
+     command: java -jar /opt/jetty-distribution-9.3.11.v20160721/start.jar --add-to-startd=http,https,logging,deploy,jsp,jstl,plus,servlets,annotations,ext,resources,logging,requestlog,jaas
+              chdir=/opt/jetty
+
+   - name: Configure jetty to use port 443
+     lineinfile: dest=/opt/jetty/start.d/ssl.ini regexp="^# jetty.ssl.port=8443" line="jetty.ssl.port=443"
+     
+   - name: create selfsigned cert
+     command: "{{item}}"
+     with_items:
+     - keytool -keystore keystore -alias jetty -genkey -keyalg RSA -storepass {{ jetty_key_pass }} -keypass {{ jetty_key_pass }} -dname "cn=shibboleth"
+     ignore_errors: yes
+     
+   - name: copy jetty-ssl-context.xml to opt/jetty
+     copy: remote_src=True src=/opt/jetty-distribution-9.3.11.v20160721/etc/jetty-ssl-context.xml 
+           dest=/opt/jetty/etc
+    
+   - name: setup port 80 access 
+     lineinfile: dest=/opt/jetty/start.d/http.ini  regexp="^# jetty.http.port=8080" line="jetty.http.port=80"
+
+   - name: setup access for the localhost
+     lineinfile: dest=/opt/jetty/start.d/http.ini  regexp="^# jetty.http.host=0.0.0.0" line="jetty.http.host=127.0.0.1"
+
+   
+
+
+
+     
+     
