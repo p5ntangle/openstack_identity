@@ -1,0 +1,3 @@
+---
+- include: ldap.yml
+- include: devstack.yml

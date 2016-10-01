@@ -1,0 +1,7 @@
+---
+slapd_adminpw: "password"
+slapd_domain: "cloud.test"
+slapd_domain_dn: "dc=cloud,dc=test"
+slapd_backend: "HDB"
+download_path: "~/ldif/"
+

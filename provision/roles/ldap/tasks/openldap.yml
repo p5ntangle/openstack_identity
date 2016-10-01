@@ -1,0 +1,50 @@
+---
+   - name: Prepare for openldap server
+     apt: pkg={{item}} state=installed
+     with_items:
+     - debconf
+     - debconf-utils
+
+   - name: Set opendlap adminpwd variable
+     debconf: name='slapd' question='slapd/internal/generated_adminpw' value='{{slapd_adminpw}}' vtype='password'
+
+   - name: Confirm openldaps adminpwd
+     debconf: name='slapd' question='slapd/internal/adminpw' value='{{slapd_adminpw}}' vtype='password'
+
+   - name: Set LDAP domain name
+     debconf: name='slapd' question='slapd/domain' value='{{slapd_domain}}' vtype='string'  
+
+   - name: Set LDAP database type 
+     debconf: name='slapd' question='slapd/backend' value='{{slapd_backend}}' vtype='string'     
+
+   - name: Install openldap server
+     apt: pkg={{item}} state=installed dpkg_options="force-confdef,force-confold"
+     with_items:
+     - slapd
+     - ldap-utils
+
+   - name: Ensures {{download_path}} dir exisist
+     file: path={{download_path}} state=directory
+
+   - name: Copy ldif scripts
+     copy: src={{item}} dest="{{download_path}}"
+     with_fileglob:
+       - ldif/*
+
+   - name: Prepare ldif to reset ldap admin password
+     command: "{{item}}"
+     with_items:
+     - sh {{download_path}}/admin_pass.sh {{slapd_domain_dn}} {{slapd_adminpw}} {{download_path}}
+
+   - name: Run ldif scripts
+     command: "{{item}}"
+     with_items:
+     - sh {{download_path}}/ou_grp.sh {{slapd_domain_dn}} {{download_path}}
+     - sh {{download_path}}/users.sh {{slapd_domain_dn}} {{download_path}}
+    
+   - name: load ldif data
+     command: "{{item}}"
+     with_items:
+     - ldapadd -w {{slapd_adminpw}} -D "cn=admin,{{slapd_domain_dn}}" -f {{download_path}}ou.ldif
+     - ldapadd -w {{slapd_adminpw}} -D "cn=admin,{{slapd_domain_dn}}" -f {{download_path}}users.ldif
+     
