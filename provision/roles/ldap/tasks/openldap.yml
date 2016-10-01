@@ -45,9 +45,7 @@
    - name: Test LDIF scripts
      shell: ls -1 ~/ldif/[ou]*.ldif | wc -l
      register: ldif_set
-     ignore_errors: True
      changed_when: False
-     no_log: True
 
    - name: Run ldif scripts and load data
      when: ldif_set.stdout != "2"

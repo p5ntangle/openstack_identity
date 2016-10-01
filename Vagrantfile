@@ -15,10 +15,10 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "ldap" do |ldap|
     ldap.vm.hostname = "ldap"
-    ldap.vm.network "private_network", ip: $ldap_ip 
+    ldap.vm.network "private_network", ip: ldap_ip 
   end
   config.vm.define "devstack" do |devstack|
     devstack.vm.hostname = "devstack"
-    devstack.vm.network "private_network", ip: $devstack_ip 
+    devstack.vm.network "private_network", ip: devstack_ip 
   end
 end
