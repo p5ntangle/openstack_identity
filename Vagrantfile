@@ -1,11 +1,18 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+require 'yaml'
 
-ldap_ip = "192.168.111.10"
-devstack_ip = "192.168.111.11"
+nodes = YAML.load_file('nodes.yml')
+hosts = ""
+ip = {}
+nodes.each do |node|
+  hosts = hosts + "#{node['ip']} #{node['name']}\n"
+  ip[node['name']] = node['ip']
+end
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/trusty64"
+  config.vm.provision "shell", inline: "echo \"#{hosts}\" >> /etc/hosts"
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "4096"
     vb.cpus = "2"
@@ -15,10 +22,10 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "ldap" do |ldap|
     ldap.vm.hostname = "ldap"
-    ldap.vm.network "private_network", ip: ldap_ip 
+    ldap.vm.network "private_network", ip: ip['ldap'] 
   end
   config.vm.define "devstack" do |devstack|
     devstack.vm.hostname = "devstack"
-    devstack.vm.network "private_network", ip: devstack_ip 
+    devstack.vm.network "private_network", ip: ip['devstack'] 
   end
 end
