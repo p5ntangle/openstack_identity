@@ -31,20 +31,30 @@
      with_fileglob:
        - ldif/*
 
+   - name: Test admin password
+     command: sh {{ download_path }}check_admin.sh cn=admin,{{ slapd_domain_dn }} {{ slapd_adminpw }}
+     register: admin_set
+     changed_when: False
+
    - name: Prepare ldif to reset ldap admin password
+     when: admin_set.stdout != "0"
      command: "{{item}}"
      with_items:
      - sh {{download_path}}/admin_pass.sh {{slapd_domain_dn}} {{slapd_adminpw}} {{download_path}}
 
-   - name: Run ldif scripts
+   - name: Test LDIF scripts
+     shell: ls -1 ~/ldif/[ou]*.ldif | wc -l
+     register: ldif_set
+     ignore_errors: True
+     changed_when: False
+     no_log: True
+
+   - name: Run ldif scripts and load data
+     when: ldif_set.stdout != "2"
      command: "{{item}}"
      with_items:
      - sh {{download_path}}/ou_grp.sh {{slapd_domain_dn}} {{download_path}}
      - sh {{download_path}}/users.sh {{slapd_domain_dn}} {{download_path}}
-    
-   - name: load ldif data
-     command: "{{item}}"
-     with_items:
      - ldapadd -w {{slapd_adminpw}} -D "cn=admin,{{slapd_domain_dn}}" -f {{download_path}}ou.ldif
      - ldapadd -w {{slapd_adminpw}} -D "cn=admin,{{slapd_domain_dn}}" -f {{download_path}}users.ldif
      
