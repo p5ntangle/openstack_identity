@@ -6,9 +6,12 @@ to a OpenLDAP Server
 
 The builds for the packer box can be found in the https://github.com/p5ntangle/image-builders.git
 
-Suggesting the following changes:
-- rename vagrant directory to packer_builds
-- create multi-machine vagrant file
-- create single site ansible playbook
+Tasks to complete
 - investigate idempotency of playbooks
-- convert playbooks to roles
+- verify the that the nodes folder can be removed
+- complete configuration and shibboleth, ldap, and devstack
+- Create tests
+
+Completed tasks
+- moved vagrant box build to seperate repo
+- 
