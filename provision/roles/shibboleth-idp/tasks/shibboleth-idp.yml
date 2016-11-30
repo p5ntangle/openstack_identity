@@ -1,0 +1,63 @@
+---
+    - name: Download shibboleth idp
+      get_url: url=http://shibboleth.net/downloads/identity-provider/{{ shib_idp_version }}/shibboleth-identity-provider-{{ shib_idp_version }}.tar.gz
+               dest={{ download_path }}/shibboleth-identity-provider-{{ shib_idp_version }}.tar.gz
+
+    - name: Create base directory for shibboleth idp
+      file: state=directory path={{ shib_installdir }}
+
+    - name: Extract shibboleth
+      unarchive: src={{ download_path }}/shibboleth-identity-provider-{{ shib_idp_version }}.tar.gz dest={{ shib_installdir }} copy=no
+
+    - name: Copying shibboleth idp install files
+      copy: src=idp.properties
+            dest="{{ shib_installdir }}/shibboleth-identity-provider-{{ shib_idp_version }}/bin/"
+            owner=root group=root mode=0644
+
+    - name: Copy silent installation file
+      template: src=idp.silent.properties.j2
+                dest={{ shib_installdir }}/shibboleth-identity-provider-{{ shib_idp_version }}/bin/idp.silent.properties
+
+    - name: Add Shibboleth silent install option
+      lineinfile:
+        dest="{{ shib_installdir }}/shibboleth-identity-provider-{{ shib_idp_version }}/bin/build.xml"
+        line="<property name=\"idp.property.file\" value=\"${basedir}/bin/idp.silent.properties\"/>"
+        regexp="^<property name=\"idp.property.file\" value=\"\$\{basedir\}\/bin\/idp.silent.properties\"\/>"
+        state=present
+        insertafter="^.*<taskdef resource.*"
+
+    - name: Install Shibboleth IdP
+      shell: "{{ shib_installdir }}/shibboleth-identity-provider-{{ shib_idp_version }}/bin/install.sh"
+      environment:
+        JAVA_HOME: "{{ java_installdir }}"
+
+    - name: Copy idp.xml to Jetty webapps
+      copy: src=webapps/idp.xml dest={{shib_installdir}}/jetty/webapps
+      notify: restart jetty
+
+    - name: Copy certificates
+      copy: src={{ item }} dest="{{ shib_installdir }}/shibboleth-idp/credentials/"
+      with_fileglob:
+        - credentials/*
+
+    - name: Copy IdP metadatas
+      copy: src={{ item }} dest="{{ shib_installdir }}/shibboleth-idp/metadata/"
+      with_fileglob:
+        - metadata/*
+
+    - name: Copy IdP configurations
+      copy: src={{ item }} dest="{{ shib_installdir }}/shibboleth-idp/conf/"
+      with_fileglob:
+        - conf/*
+      notify: restart jetty
+      
+    - name: Configure idp.ldap.properties 
+      template: src=ldap.properties.j2 dest="{{ shib_installdir}}/shibboleth-idp/conf/ldap.properties"
+      
+    - name: Configure metadata-providers
+      template: src=metadata-providers.xml.j2 dest="{{ shib_installdir}}/shibboleth-idp/conf/metadata-providers.xml"
+      notify: restart jetty
+ 
+ 
+     
+     

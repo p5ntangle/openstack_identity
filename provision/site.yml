@@ -1,3 +1,4 @@
 ---
 - include: ldap.yml
 - include: devstack.yml
+- include: shibboleth.yml

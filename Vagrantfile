@@ -33,4 +33,12 @@ Vagrant.configure("2") do |config|
     devstack.vm.network "private_network", ip: ip['devstack'] 
     config.ssh.private_key_path = "./keys/id_rsa"
   end
+  config.vm.define "shibboleth" do |shibboleth|
+    config.vm.box = box['shibboleth']
+    # Another Xenial workaround
+    config.vm.provision :shell, inline: "hostnamectl set-hostname idp"
+    #shibboleth.vm.hostname = "shibboleth"
+    shibboleth.vm.network "private_network", ip: ip['shibboleth']
+    config.ssh.private_key_path = "./keys/id_rsa"
+  end
 end

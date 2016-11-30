@@ -1,0 +1,6 @@
+---
+# default file for openldap
+
+
+   - name: restart jetty
+     command: /etc/init.d/jetty restart
