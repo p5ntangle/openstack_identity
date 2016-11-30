@@ -1,0 +1,38 @@
+---
+  - name: clone devstack
+    git: repo=https://github.com/openstack-dev/devstack.git
+         dest=/opt/stack/devstack
+         version={{ branch }}
+
+  - name: create stack user
+    command: chdir=/opt/stack/devstack ./tools/create-stack-user.sh
+    
+    
+  - name: change ownership
+    file: path=/opt/stack/devstack owner=stack recurse=yes
+    
+  - name: copy devstack local.conf
+    template: src=templates/devstack-local.conf.j2
+              dest=/opt/stack/devstack/local.conf
+
+  - name: install your public key
+    authorized_key: user={{ username }} state=present
+                    key="{{ lookup('file', local_ssh_pubkey) }}"
+
+  - name: Ensures /home/{{ username }}/.ssh dir exists
+    file: path=/home/{{ username }}/.ssh state=directory
+    
+  - name: synchronize the known_hosts file.
+    copy: src=~/.ssh/known_hosts dest=/home/{{ username }}/.ssh/known_hosts
+          owner={{ username }} mode=0644
+
+  - name: stack it
+    command: /opt/stack/devstack/stack.sh
+    args:
+      chdir: /opt/stack/devstack 
+    become_user: stack
+    become: yes
+    ignore_errors: yes
+    
+
+
